@@ -18,7 +18,6 @@ app.use(
   })
 );
 
-
 app.get('/notes', (req, res) => {
   res.status(200).json({
     message: 'Retrieved all notes',
@@ -33,9 +32,21 @@ app.get('/notes/:notesId', (req, res) => {
   });
 });
 
+app.get('/test-error', (req, res) => {
+  throw new Error('Simulated server error');
+});
+
 app.use((req, res) => {
   res.status(404).json({
     message: 'Route not found',
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  res.status(500).json({
+    message: err.message || 'Internal Server Error',
   });
 });
 
