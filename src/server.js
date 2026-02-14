@@ -24,11 +24,11 @@ app.get('/notes', (req, res) => {
   });
 });
 
-app.get('/notes/:notesId', (req, res) => {
-  const { notesId } = req.params;
+app.get('/notes/:noteId', (req, res) => {
+  const { noteId } = req.params;
 
   res.status(200).json({
-    message: `Retrieved note with ID: ${notesId}`,
+    message: `Retrieved note with ID: ${noteId}`,
   });
 });
 
