@@ -1,22 +1,21 @@
 import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
-import pino from 'pino-http';
+import { connectMongoDB } from './db/connectMongoDB.js';
+import { logger } from './middleware/logger.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { notFoundHandler } from './middleware/notFoundHandler.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+await connectMongoDB();
+
+app.use(logger);
+app.use(express.json());
 app.use(cors());
 
-app.use(express.json());
-
-app.use(
-  pino({
-    transport: {
-      target: 'pino-pretty',
-    },
-  })
-);
 
 app.get('/notes', (req, res) => {
   res.status(200).json({
@@ -32,24 +31,10 @@ app.get('/notes/:notesId', (req, res) => {
   });
 });
 
-app.get('/test-error', (req, res) => {
-  throw new Error('Simulated server error');
-});
 
-app.use((req, res) => {
-  res.status(404).json({
-    message: 'Route not found',
-  });
-});
+app.use(notFoundHandler);
 
-app.use((err, req, res, next) => {
-  console.error(err);
-
-  res.status(500).json({
-    message: err.message || 'Internal Server Error',
-  });
-});
-
+app.use(errorHandler);
 
 
 app.listen(PORT, () => console.log(`Server started on ${PORT}`));
