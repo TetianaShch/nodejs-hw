@@ -18,20 +18,6 @@ app.use(express.json());
 app.use(cors());
 app.use(notesRouter);
 
-app.get('/notes', (req, res) => {
-  res.status(200).json({
-    message: 'Retrieved all notes',
-  });
-});
-
-app.get('/notes/:notesId', (req, res) => {
-  const { notesId } = req.params;
-
-  res.status(200).json({
-    message: `Retrieved note with ID: ${notesId}`,
-  });
-});
-
 
 app.use(notFoundHandler);
 
