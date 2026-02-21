@@ -11,20 +11,17 @@ export const getAllNotes = async (req, res, next) => {
 };
 
 export const getNoteById = async (req, res, next) => {
-  try {
-    const { notesId } = req.params;
+    const { noteId } = req.params;
 
-    const note = await Note.findById(notesId);
+    const note = await Note.findById(noteId);
 
     if (!note) {
-      return res.status(404).json({ message: 'Note not found' });
+      throw createHttpError(404, 'Note not found');
     }
 
     res.status(200).json(note);
-  } catch (err) {
-    next(err);
-  }
-};
+
+  };
 
 export const createNote = async (req, res, next) => {
   try {
