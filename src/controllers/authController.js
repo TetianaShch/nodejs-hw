@@ -1,6 +1,6 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import jwt from 'jsonwebtoken';
+import path from 'node:path';
+import fs from 'node:fs/promises';
 import handlebars from 'handlebars';
 import { sendEmail } from '../utils/sendEmail.js';
 
@@ -91,7 +91,8 @@ res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'none'
 
 res.status(204).send();
 };
-export const requestResetEmail = async (req, res) => {
+
+export const requestResetEmail = async (req, res, next) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
@@ -109,16 +110,11 @@ export const requestResetEmail = async (req, res) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: '5m',
+      expiresIn: '15m',
     },
   );
 
-  const templatePath = path.join(
-    process.cwd(),
-    'src',
-    'templates',
-    'reset-password-email.html',
-  );
+  const templatePath = path.resolve('src/templates/reset-password-email.html');
 
   const templateSource = await fs.readFile(templatePath, 'utf-8');
   const template = handlebars.compile(templateSource);
@@ -130,6 +126,7 @@ export const requestResetEmail = async (req, res) => {
 
   try {
     await sendEmail({
+      from: process.env.SMTP_FROM,
       to: email,
       subject: 'Reset your password',
       html,
@@ -140,6 +137,32 @@ export const requestResetEmail = async (req, res) => {
 
   res.status(200).json({
     message: 'Password reset email sent successfully',
+  });
+  
+};
+
+export const resetPassword = async (req, res) => {
+  const { password, token } = req.body;
+
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    throw createHttpError(401, 'Invalid or expired token');
+  }
+
+  const user = await User.findOne({ _id: payload.sub, email: payload.email });
+  if (!user) {
+    throw createHttpError(404, 'User not found');
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await User.updateOne({ _id: user._id }, { password: hashedPassword }
+  );
+
+  await Session.deleteMany({ userId: user._id });
+
+  res.status(200).json({
+    message: 'Password reset successfully',
   });
 };
 
