@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import handlebars from 'handlebars';
-import { sendEmail } from '../utils/sendEmail.js';
+import { sendEmail } from '../utils/sendMail.js';
 
 import createHttpError from 'http-errors';
 import bcrypt from 'bcrypt';
@@ -138,7 +138,7 @@ export const requestResetEmail = async (req, res, next) => {
   res.status(200).json({
     message: 'Password reset email sent successfully',
   });
-  
+
 };
 
 export const resetPassword = async (req, res) => {
